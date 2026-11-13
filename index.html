@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generator Video Shorts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f14;--card:#171a22;--line:#2a2f3c;--tx:#eef1f7;--mut:#9aa3b5;--acc:#ff3d6e;--acc2:#24d2c4;--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Poppins,system-ui,sans-serif;padding:14px 14px 60px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:22px;margin:4px 0 2px;font-weight:800;letter-spacing:-.3px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mut);font-size:13px;margin:0 0 14px}
+.grid{display:grid;gap:16px}
+@media(min-width:860px){.grid{grid-template-columns:380px 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+label.t{display:block;font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px}
+label.t:first-child{margin-top:0}
+input[type=text],textarea,select{width:100%;background:#0f1218;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:11px 12px;font:inherit}
+textarea{resize:vertical;min-height:70px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#0f1218;color:var(--tx);border-radius:999px;padding:7px 12px;font:600 13px Poppins,sans-serif;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+button.big{width:100%;margin-top:16px;background:linear-gradient(90deg,var(--acc),#ff7a3d);border:0;color:#fff;font:800 16px Poppins,sans-serif;padding:14px;border-radius:12px;cursor:pointer}
+button.big:disabled{opacity:.5}
+.btn{background:#232835;border:1px solid var(--line);color:var(--tx);font:600 13px Poppins,sans-serif;padding:9px 12px;border-radius:10px;cursor:pointer}
+.btn.pri{background:var(--acc2);border-color:var(--acc2);color:#04201d}
+.btn:disabled{opacity:.5}
+.stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+.cv{background:#000;border-radius:12px;max-width:100%;max-height:68vh;display:block;box-shadow:0 10px 40px #0008}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.status{font-size:13px;color:var(--mut);text-align:center;min-height:20px}
+.bar{width:100%;height:6px;background:#0f1218;border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc2);transition:width .2s}
+.scene{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;background:#12151c}
+.scene h4{margin:0 0 6px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.scene h4 small{color:var(--mut);font-weight:500}
+.scene .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.scene .acts .btn{padding:6px 9px;font-size:12px}
+.thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#fff;flex:none}
+.note{font-size:12px;color:var(--mut);margin-top:8px}
+.warn{background:#3a2a10;border:1px solid #6b4a12;color:#ffd68a;padding:9px 11px;border-radius:10px;font-size:13px;margin-top:10px}
+.out{margin-top:12px;display:none}
+.out video{width:100%;max-height:50vh;border-radius:10px;background:#000}
+.cap{white-space:pre-wrap;background:#0f1218;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}
+.hide{display:none!important}
+.field{margin-top:10px}
+.fh{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.fh .btn{padding:5px 10px;font-size:12px;text-transform:none;letter-spacing:0}
+.voicebox{margin-top:10px;background:#10241f;border:1px solid #1d5a50;border-radius:12px;padding:10px 12px;font-size:13px}
+.voicebox ol{margin:6px 0 8px;padding-left:18px}.voicebox li{margin:3px 0}
+.acts2{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs .chip{flex:1;text-align:center}
+.small{font-size:12px;color:var(--mut)}
+input[type=range]{width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 Generator Video <span>Shorts</span></h1>
+  <p class="sub">Masukkan judul → naskah, suara, animasi praktek &amp; subtitle dibuat otomatis → simpan videonya untuk Reels, YouTube Shorts &amp; TikTok.</p>
+
+  <div class="grid">
+    <!-- PANEL INPUT -->
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="chip on" data-mode="ai">✨ Dari judul</button>
+          <button class="chip" data-mode="manual">✍️ Naskah sendiri</button>
+        </div>
+
+        <label class="t">Judul video</label>
+        <input type="text" id="title" placeholder="Contoh: Cara membuat kopi susu gula aren di rumah" maxlength="140">
+
+        <div id="manualBox" class="hide">
+          <label class="t">Naskah (satu paragraf = satu adegan)</label>
+          <textarea id="manualScript" rows="7" placeholder="Halo! Hari ini kita belajar membuat kopi susu.&#10;&#10;Pertama, seduh dua sendok kopi dengan air panas.&#10;&#10;..."></textarea>
+        </div>
+
+        <label class="t">Jenis konten</label>
+        <div class="chips" id="cat">
+          <button class="chip on" data-v="auto">Otomatis</button>
+          <button class="chip" data-v="tutorial">Tutorial</button>
+          <button class="chip" data-v="tips">Tips</button>
+          <button class="chip" data-v="fakta">Fakta</button>
+          <button class="chip" data-v="cerita">Cerita</button>
+          <button class="chip" data-v="motivasi">Motivasi</button>
+          <button class="chip" data-v="review">Review</button>
+        </div>
+
+        <label class="t">Durasi</label>
+        <div class="chips" id="dur">
+          <button class="chip" data-v="15">15 dtk</button>
+          <button class="chip on" data-v="30">30 dtk</button>
+          <button class="chip" data-v="45">45 dtk</button>
+          <button class="chip" data-v="60">60 dtk</button>
+          <button class="chip" data-v="90">90 dtk</button>
+        </div>
+
+        <label class="t">Rasio</label>
+        <div class="chips" id="ratio">
+          <button class="chip on" data-v="9:16">9:16 Shorts/TikTok/Reels</button>
+          <button class="chip" data-v="4:5">4:5 Feed</button>
+          <button class="chip" data-v="1:1">1:1</button>
+          <button class="chip" data-v="16:9">16:9</button>
+        </div>
+
+        <label class="t">Suara narator</label>
+        <div class="row">
+          <select id="voice">
+            <option value="id+m3">Pria</option>
+            <option value="id+f3" selected>Wanita</option>
+            <option value="id+m7">Pria (berat)</option>
+            <option value="id+f4">Wanita (lembut)</option>
+            <option value="file">🎧 Suara manusia (rekaman / AI lain)</option>
+            <option value="none">Tanpa suara</option>
+          </select>
+          <select id="speed">
+            <option value="150">Pelan</option>
+            <option value="172" selected>Normal</option>
+            <option value="195">Cepat</option>
+          </select>
+        </div>
+
+        <div id="fileVoiceBox" class="voicebox hide">
+          <b>🎧 Suara manusia</b>
+          <ol>
+            <li>Tekan <b>Generate</b> dulu → naskah muncul.</li>
+            <li>Tekan <b>Salin naskah</b>, lalu rekam suara Anda membacanya <i>atau</i> tempel ke aplikasi suara AI (mis. CapCut: Teks → Teks ke ucapan, pilih suara Indonesia) lalu ekspor.</li>
+            <li>Unggah file suaranya di sini — aplikasi memotong &amp; menyelaraskan ke tiap adegan otomatis.</li>
+          </ol>
+          <div class="acts2">
+            <button class="btn" id="copyScript" type="button">📋 Salin naskah</button>
+            <label class="btn">📁 Unggah suara<input type="file" id="fullAudioFile" accept="audio/*,video/*" hidden></label>
+            <label class="btn">🎤 Rekam<input type="file" id="fullAudioRec" accept="audio/*" capture hidden></label>
+          </div>
+          <div class="small" style="margin-bottom:6px">Suara AI gratis (bukan robot): <a href="https://ttsmaker.com/" target="_blank" rel="noopener" style="color:#7ff0e4">TTSMaker</a> (ttsmaker.com) → bahasa Indonesia → tempel naskah → unduh MP3. Atau CapCut: Teks → Teks ke ucapan.</div>
+          <div class="small" id="fullAudioInfo">Belum ada file suara.</div>
+          <div class="small">Tips: baca dengan jeda ±1 detik antar paragraf agar pemotongan adegan tepat.</div>
+        </div>
+
+        <label class="t">Tampilan &amp; musik</label>
+        <div class="row">
+          <select id="theme">
+            <option value="neon">Neon gelap</option>
+            <option value="nusantara">Hangat Nusantara</option>
+            <option value="terang">Terang pastel</option>
+          </select>
+          <select id="music">
+            <option value="0">Tanpa musik</option>
+            <option value="0.10" selected>Musik pelan</option>
+            <option value="0.2">Musik sedang</option>
+          </select>
+        </div>
+
+        <label class="t">Ajakan di akhir video</label>
+        <label class="chk"><input type="checkbox" id="ctaOn" checked> Tambahkan ajakan penutup di setiap video</label>
+        <input type="text" id="ctaText" maxlength="160" value="Jangan lupa subscribe dan follow untuk tips lainnya!">
+
+        <label class="t">Nama akun (watermark, opsional)</label>
+        <input type="text" id="handle" placeholder="@namaakun" maxlength="40">
+
+        <button class="big" id="go">⚡ Generate Video</button>
+        <div id="aiWarn" class="warn hide"></div>
+      </div>
+
+      <div class="card" id="editor" style="margin-top:16px;display:none">
+        <div class="row" style="justify-content:space-between">
+          <b style="flex:none">🎞️ Adegan</b>
+          <button class="btn pri" id="apply" style="flex:none">🔄 Terapkan perubahan</button>
+        </div>
+        <div class="note">Ubah narasi atau teks, ganti visual dengan foto/rekaman layar praktek Anda sendiri, atau pakai rekaman suara sendiri per adegan.</div>
+        <div id="scenes"></div>
+        <button class="btn" id="addScene" style="margin-top:10px;width:100%">＋ Tambah adegan</button>
+      </div>
+    </div>
+
+    <!-- PANEL PREVIEW -->
+    <div class="card stage">
+      <canvas id="cv" class="cv" width="720" height="1280"></canvas>
+      <div class="bar"><i id="prog"></i></div>
+      <div class="status" id="status">Belum ada video. Isi judul lalu tekan Generate.</div>
+      <div class="ctrl">
+        <button class="btn" id="play" disabled>▶ Putar</button>
+        <button class="btn" id="stop" disabled>■ Stop</button>
+        <button class="btn pri" id="export" disabled>💾 Buat file video</button>
+      </div>
+      <div class="out" id="out">
+        <video id="outVideo" controls playsinline></video>
+        <div class="ctrl" style="margin-top:8px">
+          <button class="btn pri" id="save">⬇ Simpan ke perangkat</button>
+        </div>
+        <div class="note" id="saveNote"></div>
+      </div>
+      <div id="capBox" style="width:100%;display:none">
+        <div class="row" style="justify-content:space-between;margin-top:6px">
+          <b style="flex:none">📋 Siap Salin</b>
+          <button class="btn pri" id="copyAll" style="flex:none">Salin semua (judul + keterangan + hashtag)</button>
+        </div>
+        <div class="field"><div class="fh"><span>Judul video</span><button class="btn" data-copy="#mTitle">📋 Salin</button></div><textarea id="mTitle" rows="2"></textarea></div>
+        <div class="field"><div class="fh"><span>Keterangan / deskripsi</span><button class="btn" data-copy="#mDesc">📋 Salin</button></div><textarea id="mDesc" rows="6"></textarea></div>
+        <div class="field"><div class="fh"><span>Hashtag</span><button class="btn" data-copy="#mTags">📋 Salin</button></div><textarea id="mTags" rows="3"></textarea></div>
+        <div class="field"><div class="fh"><span>Tag / kata kunci YouTube</span><button class="btn" data-copy="#mYt">📋 Salin</button></div><textarea id="mYt" rows="3"></textarea></div>
+        <div class="field"><div class="fh"><span>Komentar untuk di-pin</span><button class="btn" data-copy="#mPin">📋 Salin</button></div><textarea id="mPin" rows="2"></textarea></div>
+        <div class="field"><div class="fh"><span>Naskah narasi (untuk rekam / suara AI)</span><button class="btn" data-copy="#mScript">📋 Salin</button></div><textarea id="mScript" rows="6"></textarea></div>
+        <div class="note">Semua kolom bisa diedit sebelum disalin.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+/* ============ util ============ */
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const cap = n => (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use(n)).catch(() => null) : Promise.resolve(null);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+const easeBack = x => { x = clamp(x, 0, 1); const c = 1.70158; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+function setStatus(t) { $('#status').textContent = t; }
+function setProg(p) { $('#prog').style.width = (clamp(p, 0, 1) * 100).toFixed(1) + '%'; }
+
+let sampleFn = null, downloads = null;
+cap('sample').then(s => { sampleFn = s; });
+cap('downloads').then(d => { downloads = d; });
+
+/* ============ pilihan UI ============ */
+const sel = { cat: 'auto', dur: 30, ratio: '9:16', mode: 'ai' };
+function chipGroup(id, key, num) {
+  $(id).addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    [...$(id).children].forEach(c => c.classList.toggle('on', c === b));
+    sel[key] = num ? +b.dataset.v : b.dataset.v;
+    if (key === 'ratio') { applyRatio(); if (project) drawFrame(0); else drawIdle(); }
+  });
+}
+chipGroup('#cat', 'cat'); chipGroup('#dur', 'dur', true); chipGroup('#ratio', 'ratio');
+document.querySelectorAll('.tabs .chip').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs .chip').forEach(c => c.classList.toggle('on', c === b));
+  sel.mode = b.dataset.mode;
+  $('#manualBox').classList.toggle('hide', sel.mode !== 'manual');
+}));
+
+/* ============ kanvas & tema ============ */
+const cv = $('#cv'), g = cv.getContext('2d');
+let W = 720, H = 1280;
+function applyRatio() {
+  const m = { '9:16': [720, 1280], '4:5': [864, 1080], '1:1': [1080, 1080], '16:9': [1280, 720] }[sel.ratio];
+  [W, H] = m; cv.width = W; cv.height = H;
+}
+const THEMES = {
+  neon: { bg1: '#0f0c29', bg2: '#302b63', blob: ['#ff3d6e', '#24d2c4', '#7b5cff'], acc: '#24d2c4', acc2: '#ff3d6e', tx: '#ffffff', sub: '#ffe44d', panel: '#ffffff', chipTx: '#0b0b18' },
+  nusantara: { bg1: '#1f140a', bg2: '#5a3417', blob: ['#f4a300', '#d7263d', '#2e8b57'], acc: '#f4a300', acc2: '#d7263d', tx: '#fff8e7', sub: '#ffd166', panel: '#fff8e7', chipTx: '#1f140a' },
+  terang: { bg1: '#fef6e4', bg2: '#f8d9c9', blob: ['#f582ae', '#8bd3dd', '#ffd803'], acc: '#f582ae', acc2: '#3da9fc', tx: '#001858', sub: '#001858', panel: '#ffffff', chipTx: '#ffffff' }
+};
+let T = THEMES.neon;
+const FONT = 'Poppins, system-ui, sans-serif';
+
+function rr(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function wrap(text, maxW) {
+  const words = String(text || '').split(/\s+/).filter(Boolean); const lines = []; let cur = '';
+  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur); return lines;
+}
+function fitText(text, maxW, maxLines, size, minSize, weight = 800) {
+  let s = size, lines;
+  for (; s >= minSize; s -= 2) { g.font = `${weight} ${s}px ${FONT}`; lines = wrap(text, maxW); if (lines.length <= maxLines) break; }
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] += '…'; }
+  return { lines, size: s };
+}
+
+function layout() {
+  const land = W > H, tall = H / W > 1.5, u = Math.min(W, H) / 720;
+  if (land) {
+    const ph = H * 0.74, pw = W * 0.47;
+    return { land, u, prog: { x: W * 0.04, y: H * 0.05, w: W * 0.92 }, panel: { x: W * 0.04, y: H * 0.15, w: pw, h: ph },
+      chipY: H * 0.2, textX: W * 0.55, textW: W * 0.41, textY: H * 0.3, textMaxLines: 3, textSize: 56 * u, subY: H * 0.74, subX: W * 0.755, subW: W * 0.42 };
+  }
+  const textY = H * (tall ? 0.115 : 0.12);
+  const textSize = (tall ? 58 : 50) * u;
+  const panelY = H * (tall ? 0.29 : 0.29);
+  const panelH = H * (tall ? 0.46 : 0.45);
+  return { land, u, prog: { x: W * 0.05, y: H * 0.03, w: W * 0.9 }, panel: { x: W * 0.07, y: panelY, w: W * 0.86, h: panelH },
+    chipY: H * 0.065, textX: W * 0.07, textW: W * 0.86, textY, textMaxLines: tall ? 3 : 2, textSize,
+    subY: panelY + panelH + (H - panelY - panelH) * 0.42, subX: W / 2, subW: W * 0.88 };
+}
+
+function drawBg(t) {
+  const gr = g.createLinearGradient(0, 0, W * 0.4, H); gr.addColorStop(0, T.bg1); gr.addColorStop(1, T.bg2);
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  T.blob.forEach((c, i) => {
+    const x = W * (0.5 + 0.42 * Math.sin(t * 0.25 + i * 2.1)), y = H * (0.5 + 0.4 * Math.cos(t * 0.19 + i * 1.7)), r = Math.max(W, H) * 0.42;
+    const rg = g.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, c + '55'); rg.addColorStop(1, c + '00');
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+  });
+}
+
+function drawIdle() {
+  applyTheme(); drawBg(0); const L = layout();
+  g.fillStyle = T.tx; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `800 ${60 * L.u}px ${FONT}`; g.fillText('🎬', W / 2, H / 2 - 70 * L.u);
+  g.font = `700 ${34 * L.u}px ${FONT}`; g.fillText('Preview ' + sel.ratio, W / 2, H / 2 + 10 * L.u);
+}
+function applyTheme() { T = THEMES[$('#theme').value] || THEMES.neon; }
+$('#theme').addEventListener('change', () => { applyTheme(); if (project) drawFrame(curT); else drawIdle(); });
+
+/* ============ mesin suara (eSpeak-NG, bahasa Indonesia) ============ */
+let ttsW = null, ttsLoading = null;
+async function initTTS() {
+  if (ttsW) return ttsW;
+  if (!ttsLoading) ttsLoading = (async () => {
+    const mod = await import('./espeak-ng.js');
+    const b64 = (await import('./espeak-data.js')).default; const bin = atob(b64); const buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const m = await mod.default({ getPreloadedPackage: () => buf.buffer, locateFile: p => './' + p, print: () => {}, printErr: () => {} });
+    ttsW = new m.eSpeakNGWorker(); ttsW.SR = ttsW.get_samplerate(); return ttsW;
+  })();
+  return ttsLoading;
+}
+function cleanSpeech(s) {
+  return String(s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').replace(/[#*_~`>]/g, '').replace(/\s+/g, ' ').trim();
+}
+function synth(text, voice, rate) {
+  const w = ttsW; w.set_voice(voice); w.set_rate(rate | 0);
+  const parts = []; let n = 0;
+  w.synthesize(cleanSpeech(text), s => { parts.push(s); n += s.length; return false; });
+  const out = new Float32Array(n); let o = 0;
+  for (const p of parts) for (let i = 0; i < p.length; i++) out[o++] = p[i] / 32768;
+  let pk = 0; for (let i = 0; i < out.length; i++) pk = Math.max(pk, Math.abs(out[i]));
+  const k = pk > 0 ? 0.92 / pk : 1;
+  // trim hening di awal/akhir
+  let a = 0, b = out.length - 1; while (a < b && Math.abs(out[a]) < 0.004) a++; while (b > a && Math.abs(out[b]) < 0.004) b--;
+  const tr = out.subarray(Math.max(0, a - 200), Math.min(out.length, b + 400));
+  const res = new Float32Array(tr.length); for (let i = 0; i < tr.length; i++) res[i] = tr[i] * k;
+  const f = Math.min(220, res.length >> 2); for (let i = 0; i < f; i++) { res[i] *= i / f; res[res.length - 1 - i] *= i / f; }
+  return res;
+}
+
+/* ============ audio ============ */
+let actx = null;
+function getCtx() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx; }
+
+async function makeMusic(total, mood) {
+  const sr = 44100, len = Math.ceil((total + 1) * sr);
+  const oc = new OfflineAudioContext(2, len, sr);
+  const out = oc.createGain(); out.gain.value = 0.9; out.connect(oc.destination);
+  const progs = {
+    upbeat: [[261.6, 329.6, 392], [220, 261.6, 329.6], [174.6, 220, 261.6], [196, 246.9, 293.7]],
+    calm: [[220, 261.6, 329.6], [174.6, 220, 261.6], [261.6, 329.6, 392], [196, 246.9, 293.7]],
+    epic: [[220, 261.6, 329.6], [174.6, 220, 261.6], [130.8, 196, 261.6], [196, 246.9, 293.7]]
+  };
+  const P = progs[mood] || progs.upbeat, bpm = mood === 'calm' ? 84 : 108, beat = 60 / bpm, bar = beat * 4;
+  const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.connect(out);
+  for (let t = 0, i = 0; t < total + 1; t += bar, i++) {
+    const ch = P[i % P.length];
+    ch.forEach(f => {
+      const o = oc.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+      const ga = oc.createGain(); ga.gain.setValueAtTime(0, t); ga.gain.linearRampToValueAtTime(0.07, t + 0.4); ga.gain.linearRampToValueAtTime(0.05, t + bar - 0.2); ga.gain.linearRampToValueAtTime(0, t + bar);
+      o.connect(ga).connect(lp); o.start(t); o.stop(t + bar + 0.05);
+    });
+    for (let b = 0; b < 4; b++) {
+      const bt = t + b * beat; if (bt > total + 1) break;
+      const bo = oc.createOscillator(); bo.type = 'sine'; bo.frequency.value = ch[0] / 2;
+      const bg = oc.createGain(); bg.gain.setValueAtTime(0.16, bt); bg.gain.exponentialRampToValueAtTime(0.001, bt + beat * 0.9);
+      bo.connect(bg).connect(out); bo.start(bt); bo.stop(bt + beat);
+      if (mood !== 'calm') {
+        const k = oc.createOscillator(); k.frequency.setValueAtTime(140, bt); k.frequency.exponentialRampToValueAtTime(42, bt + 0.14);
+        const kg = oc.createGain(); kg.gain.setValueAtTime(0.5, bt); kg.gain.exponentialRampToValueAtTime(0.001, bt + 0.22);
+        k.connect(kg).connect(out); k.start(bt); k.stop(bt + 0.25);
+        const nb = oc.createBuffer(1, sr * 0.05, sr), d = nb.getChannelData(0); for (let j = 0; j < d.length; j++) d[j] = (Math.random() * 2 - 1) * (1 - j / d.length);
+        const hs = oc.createBufferSource(); hs.buffer = nb; const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000;
+        const hg = oc.createGain(); hg.gain.value = 0.12; hs.connect(hp).connect(hg).connect(out); hs.start(bt + beat / 2);
+      }
+    }
+  }
+  return oc.startRendering();
+}
+
+/* ============ AI naskah ============ */
+function sceneCount(d) { return clamp(Math.round(d / 5.5), 3, 16); }
+function buildPrompt(title, cat, dur) {
+  const n = Math.max(2, sceneCount(dur) - 1), words = Math.round((dur - 4) * 2.35);
+  return `Kamu penulis naskah video pendek vertikal (YouTube Shorts, TikTok, Reels) berbahasa Indonesia yang viral dan akurat.
+Judul: "${title}"
+Jenis konten: ${cat === 'auto' ? 'tentukan sendiri dari judul (tutorial/tips/fakta/cerita/motivasi/review)' : cat}
+Durasi: ${dur} detik. Buat TEPAT ${n} adegan. Total narasi semua adegan sekitar ${words} kata (jangan lebih), dibagi merata.
+
+Aturan:
+- Adegan 1 = hook kuat (3 detik pertama menentukan), adegan terakhir = hasil/kesimpulan singkat. JANGAN menulis ajakan follow/subscribe di adegan mana pun (aplikasi menambahkannya sendiri).
+- Jika tutorial/cara: adegan tengah adalah langkah praktek yang konkret, berurutan, benar dan bisa langsung dipraktekkan (sebut alat/bahan/tombol/ukuran yang jelas). Label "LANGKAH 1", "LANGKAH 2", dst.
+- Narasi: bahasa lisan santai, kalimat pendek, tanpa emoji, tanpa singkatan, tanpa simbol.
+- "text": teks besar di layar, maksimal 7 kata, intisari adegan.
+- "label": maksimal 3 kata, HURUF BESAR (mis. "LANGKAH 2", "TIPS PENTING", "HASILNYA").
+- "svg": ilustrasi flat sederhana yang MEMPERAGAKAN praktek adegan itu (mis. tangan memegang alat, layar HP dengan tombol yang harus ditekan, bahan di atas meja, sebelum-sesudah). Format: <svg viewBox='0 0 400 400'>...</svg>, pakai KUTIP TUNGGAL untuk atribut, bentuk tebal dan warna cerah solid, latar terang, maksimal 2 label teks pendek, tanpa <image>, tanpa script, maksimal 1800 karakter.
+- "tap": titik (x,y dalam persen 0-100 dari ilustrasi) tempat aksi/klik terjadi di ilustrasi untuk adegan praktek; null jika tidak ada aksi.
+- "emoji": satu emoji yang mewakili adegan.
+
+Balas HANYA JSON valid tanpa teks lain, format:
+{"kategori":"...","mood":"upbeat|calm|epic","judul_video":"judul unggahan yang menarik dan SEO, maks 70 karakter, boleh 1 emoji","deskripsi":"keterangan unggahan 3-5 kalimat: ringkasan isi + daftar langkah singkat bila tutorial","hashtags":["8-12 hashtag relevan campuran populer dan spesifik, diawali #"],"tags":"10-15 kata kunci YouTube dipisah koma","komentar_pin":"1 kalimat pertanyaan untuk komentar yang di-pin agar penonton membalas","scenes":[{"type":"hook|langkah|tips|fakta|hasil|cta","label":"...","text":"...","narration":"...","emoji":"...","tap":{"x":50,"y":50},"svg":"<svg viewBox='0 0 400 400'>...</svg>"}]}`;
+}
+function parseJSON(txt) {
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+  if (a < 0 || b < 0) throw new Error('Format jawaban tidak dikenali');
+  return JSON.parse(txt.slice(a, b + 1));
+}
+function templatePlan(title, cat, dur) {
+  const n = sceneCount(dur); const c = cat === 'auto' ? (/cara|tutorial|membuat|bikin|langkah|setting|install/i.test(title) ? 'tutorial' : 'tips') : cat;
+  const sc = [{ type: 'hook', label: c === 'tutorial' ? 'TUTORIAL' : 'WAJIB TAHU', text: title, narration: `${title}. Simak sampai habis, karena caranya ternyata gampang banget.`, emoji: '🔥' }];
+  const num = ['pertama', 'kedua', 'ketiga', 'keempat', 'kelima', 'keenam', 'ketujuh', 'kedelapan', 'kesembilan', 'kesepuluh', 'kesebelas', 'kedua belas', 'ketiga belas', 'keempat belas'];
+  for (let i = 0; i < n - 1; i++) sc.push({ type: 'langkah', label: c === 'tutorial' ? `LANGKAH ${i + 1}` : `POIN ${i + 1}`, text: `${c === 'tutorial' ? 'Langkah' : 'Poin'} ${i + 1}`, narration: `${c === 'tutorial' ? 'Langkah' : 'Poin'} ${num[i]}, tulis penjelasan singkat di sini.`, emoji: ['👉', '✅', '🛠️', '💡', '📌', '⭐'][i % 6], tap: null });
+  return { kategori: c, mood: 'upbeat', caption: title, hashtags: ['#fyp', '#tutorial', '#tips', '#shorts'], scenes: sc };
+}
+function manualPlan(title, script) {
+  const paras = script.split(/\n\s*\n|\n/).map(s => s.trim()).filter(Boolean);
+  const em = ['🔥', '👉', '✅', '💡', '🛠️', '📌', '⭐', '🎯'];
+  return { kategori: 'manual', mood: 'upbeat', caption: title, hashtags: ['#fyp', '#shorts'],
+    scenes: paras.map((p, i) => ({ type: i === 0 ? 'hook' : 'langkah', label: i === 0 ? 'SIMAK' : `BAGIAN ${i}`,
+      text: p.split(/\s+/).slice(0, 6).join(' ') + (p.split(/\s+/).length > 6 ? '…' : ''), narration: p, emoji: em[i % em.length], tap: null })) };
+}
+
+function ctaScene() {
+  const txt = ($('#ctaText').value || '').trim() || 'Jangan lupa subscribe dan follow untuk tips lainnya!';
+  const short = txt.length > 46 ? 'Subscribe & Follow untuk tips lainnya!' : txt;
+  return { type: 'cta', label: 'JANGAN LUPA', text: short, narration: txt, emoji: '🔔', tap: null, isCTA: true };
+}
+function slugTag(w) { return '#' + String(w).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function fillMeta(plan, title) {
+  const stop = new Set(['cara', 'yang', 'dan', 'di', 'ke', 'dari', 'untuk', 'dengan', 'ini', 'itu', 'agar', 'supaya', 'pada', 'atau', 'buat', 'bikin', 'membuat', 'mudah', 'cepat']);
+  const kw = title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !stop.has(w));
+  if (!plan.judul_video) plan.judul_video = title.charAt(0).toUpperCase() + title.slice(1);
+  if (!plan.deskripsi) plan.deskripsi = plan.scenes.map(s => s.narration).filter(Boolean).slice(0, 4).join(' ');
+  let tags = Array.isArray(plan.hashtags) ? plan.hashtags : String(plan.hashtags || '').split(/[\s,]+/);
+  tags = tags.map(t => String(t).trim()).filter(Boolean).map(t => t.startsWith('#') ? t : '#' + t);
+  if (tags.length < 5) tags = [...new Set([...tags, ...kw.slice(0, 5).map(slugTag), '#fyp', '#tutorial', '#shorts', '#reels', '#tiktokindonesia'])];
+  plan.hashtags = tags;
+  if (!plan.tags) plan.tags = [...new Set([title.toLowerCase(), ...kw, 'tutorial', 'tips', 'shorts'])].join(', ');
+  if (!plan.komentar_pin) plan.komentar_pin = 'Kalian sudah pernah coba? Tulis pengalaman kalian di kolom komentar ya! 👇';
+  return plan;
+}
+
+/* ============ gambar adegan ============ */
+function cleanSvg(s) {
+  if (!s || typeof s !== 'string') return null;
+  const i = s.indexOf('<svg'), j = s.lastIndexOf('</svg>'); if (i < 0 || j < 0) return null;
+  s = s.slice(i, j + 6)
+    .replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi, '').replace(/<image[\s\S]*?>/gi, '').replace(/(xlink:)?href\s*=\s*(['"])(?!#).*?\2/gi, '');
+  const head = s.slice(0, s.indexOf('>'));
+  let h2 = head;
+  if (!/xmlns=/.test(h2)) h2 = h2.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  if (!/\swidth=/.test(h2)) h2 = h2.replace('<svg', '<svg width="400" height="400"');
+  return h2 + s.slice(head.length);
+}
+function loadImg(url) {
+  return new Promise(res => { const im = new Image(); const to = setTimeout(() => res(null), 4000); im.onload = () => { clearTimeout(to); res(im); }; im.onerror = () => { clearTimeout(to); res(null); }; im.src = url; });
+}
+async function svgToImg(svg) { const c = cleanSvg(svg); if (!c) return null; return loadImg(URL.createObjectURL(new Blob([c], { type: 'image/svg+xml' }))); }
+
+/* ============ proyek & timeline ============ */
+let project = null, curT = 0;
+
+function mono(buf) {
+  const n = buf.length, out = new Float32Array(n);
+  for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / buf.numberOfChannels; }
+  return out;
+}
+function analyse(data, sr) {
+  const fl = Math.round(sr * 0.02), nf = Math.floor(data.length / fl), rms = new Float32Array(nf);
+  for (let f = 0; f < nf; f++) { let a = 0; for (let i = f * fl; i < (f + 1) * fl; i++) a += data[i] * data[i]; rms[f] = Math.sqrt(a / fl); }
+  const sorted = Array.from(rms).sort((a, b) => a - b), peak = sorted[Math.floor(nf * 0.98)] || 0.1, noise = sorted[Math.floor(nf * 0.1)] || 0;
+  return { fl, nf, rms, thr: Math.max(noise * 3, peak * 0.07, 0.004) };
+}
+// potong satu rekaman utuh menjadi bagian per adegan, mengikuti jeda bicara
+function splitFullAudio(buf, S) {
+  const ctx = getCtx(), sr = buf.sampleRate, data = mono(buf), A = analyse(data, sr), fs = A.fl / sr;
+  let a = 0, b = A.nf - 1; while (a < b && A.rms[a] < A.thr) a++; while (b > a && A.rms[b] < A.thr) b--;
+  const t0 = Math.max(0, a * fs - 0.1), t1 = Math.min(buf.duration, (b + 1) * fs + 0.15), span = t1 - t0;
+  const sil = []; let run = -1;
+  for (let f = a; f <= b + 1; f++) {
+    const q = f <= b && A.rms[f] < A.thr;
+    if (q && run < 0) run = f; if (!q && run >= 0) { const len = (f - run) * fs; if (len >= 0.22) sil.push({ mid: (run + f) / 2 * fs, len }); run = -1; }
+  }
+  const wc = S.map(s => Math.max(1, cleanSpeech(s.narration).split(/\s+/).filter(Boolean).length)), tw = wc.reduce((x, y) => x + y, 0);
+  const cuts = [t0]; let acc = 0;
+  for (let k = 0; k < S.length - 1; k++) {
+    acc += wc[k]; const E = t0 + span * acc / tw, win = Math.max(2.5, span * 0.12), last = cuts[cuts.length - 1];
+    let best = null, bs = -1e9;
+    for (const q of sil) { if (q.mid <= last + 0.6 || Math.abs(q.mid - E) > win) continue; const sc = q.len - 0.35 * Math.abs(q.mid - E); if (sc > bs) { bs = sc; best = q; } }
+    cuts.push(best ? best.mid : Math.max(E, last + 0.6));
+  }
+  cuts.push(t1);
+  S.forEach((s, k) => {
+    const st = Math.round(cuts[k] * sr), en = Math.max(st + 1, Math.round(cuts[k + 1] * sr));
+    const nb = ctx.createBuffer(1, en - st, sr); nb.copyToChannel(data.subarray(st, en), 0);
+    // posisi suara aktif di dalam potongan (untuk subtitle)
+    const fa = Math.floor(st / A.fl), fb = Math.floor(en / A.fl); let x = fa, y = fb - 1;
+    while (x < y && A.rms[x] < A.thr) x++; while (y > x && A.rms[y] < A.thr) y--;
+    s.audio = nb; s.vOff = Math.max(0, (x - fa) * fs); s.vLen = Math.max(0.5, (y - x + 1) * fs);
+  });
+}
+
+async function buildAudio(onStep) {
+  const voice = $('#voice').value, baseRate = +$('#speed').value, target = project.target, ctx = getCtx();
+  const S = project.scenes, pad = 0.55;
+  if (voice !== 'none' && voice !== 'file') {
+    try { await initTTS(); } catch (e) { console.error(e); project.ttsFail = true; }
+  }
+  S.forEach(s => { s.vOff = 0; s.vLen = 0; });
+  if (voice === 'file') {
+    if (project.fullAudio) { onStep && onStep('Menyelaraskan suara ke adegan…'); await sleep(30); splitFullAudio(project.fullAudio, S); }
+    else S.forEach(s => s.audio = null);
+    S.forEach(s => { if (s.customAudio) { s.audio = s.customAudio; s.vOff = 0; s.vLen = 0; } });
+  }
+  const doSynth = rate => {
+    if (voice === 'file') return;
+    for (const s of S) {
+      if (s.customAudio) { s.audio = s.customAudio; continue; }
+      if (voice === 'none' || !ttsW) { s.audio = null; continue; }
+      const f = synth(s.narration, voice, rate);
+      if (!f.length) { s.audio = null; continue; }
+      const b = ctx.createBuffer(1, f.length, ttsW.SR); b.copyToChannel(f, 0); s.audio = b;
+    }
+  };
+  onStep && onStep('Membuat suara narator…');
+  await sleep(30);
+  doSynth(baseRate);
+  const speechSum = () => S.reduce((a, s) => a + (s.audio ? s.audio.duration : 0), 0);
+  if (voice !== 'none' && voice !== 'file' && ttsW) {
+    const sp = speechSum(), room = target - S.length * pad;
+    if (sp > room && room > 0) { const r = clamp(baseRate * sp / room, baseRate, 250); if (r > baseRate + 3) { onStep && onStep('Menyesuaikan tempo dengan durasi…'); await sleep(30); doSynth(r); } }
+  }
+  for (const s of S) {
+    const wc = (s.narration || '').split(/\s+/).filter(Boolean).length;
+    s.speech = s.vLen || (s.audio ? s.audio.duration : Math.max(1.6, wc / 2.5));
+    s.base = voice === 'file' && s.audio && !s.customAudio ? Math.max(1.5, s.audio.duration + 0.15) : Math.max(2.2, (s.audio ? s.audio.duration : s.speech) + pad);
+  }
+  let sum = S.reduce((a, s) => a + s.base, 0);
+  const extra = target > sum ? (target - sum) / S.length : 0;
+  let t = 0; for (const s of S) { s.start = t; s.dur = s.base + extra; t += s.dur; }
+  project.total = t;
+  // timing kata subtitle
+  for (const s of S) {
+    const words = cleanSpeech(s.narration).split(/\s+/).filter(Boolean);
+    const wts = words.map(w => w.length + 2), tot = wts.reduce((a, b) => a + b, 0) || 1;
+    let acc = 0; s.words = words.map((w, i) => { const st = acc / tot * s.speech; acc += wts[i]; return { w, t0: st, t1: acc / tot * s.speech }; });
+    s.chunks = []; let ch = [];
+    s.words.forEach((w, i) => { ch.push(i); if (ch.length >= 4 || /[.,!?;:]$/.test(w.w)) { s.chunks.push(ch); ch = []; } });
+    if (ch.length) s.chunks.push(ch);
+  }
+  const mv = +$('#music').value;
+  project.music = null;
+  if (mv > 0) { onStep && onStep('Membuat musik latar…'); try { project.music = await makeMusic(project.total, project.mood); } catch (e) { console.warn(e); } }
+}
+
+/* ============ render frame ============ */
+function drawPanelContent(s, P, lt) {
+  const pad = 14 * P.u;
+  g.save(); rr(P.x, P.y, P.w, P.h, 30 * P.u); g.fillStyle = T.panel; g.shadowColor = '#0006'; g.shadowBlur = 30 * P.u; g.shadowOffsetY = 10 * P.u; g.fill(); g.restore();
+  g.save(); rr(P.x, P.y, P.w, P.h, 30 * P.u); g.clip();
+  const kb = 1 + 0.06 * (lt / Math.max(s.dur, 1));
+  const m = s.media;
+  if (s.isCTA && !m) { drawCTAPanel(P, lt, s.dur); g.restore(); return; }
+  if (m && (m.kind === 'video' ? m.el.readyState >= 2 : true)) {
+    const el = m.el, iw = m.kind === 'video' ? el.videoWidth : el.naturalWidth, ih = m.kind === 'video' ? el.videoHeight : el.naturalHeight;
+    if (iw && ih) {
+      const sc = Math.max(P.w / iw, P.h / ih) * (m.kind === 'video' ? 1 : kb), dw = iw * sc, dh = ih * sc;
+      g.drawImage(el, P.x + (P.w - dw) / 2, P.y + (P.h - dh) / 2, dw, dh);
+    }
+  } else if (s.img) {
+    const im = s.img, iw = im.naturalWidth || 400, ih = im.naturalHeight || 400;
+    const sc = Math.min((P.w - pad * 2) / iw, (P.h - pad * 2) / ih) * kb, dw = iw * sc, dh = ih * sc;
+    const ox = P.x + (P.w - dw) / 2, oy = P.y + (P.h - dh) / 2;
+    g.drawImage(im, ox, oy, dw, dh);
+    if (s.tap && typeof s.tap.x === 'number') drawTap(ox + dw * clamp(s.tap.x, 0, 100) / 100, oy + dh * clamp(s.tap.y, 0, 100) / 100, lt, s.dur, P.u);
+  } else {
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    const bob = Math.sin(lt * 3) * 8 * P.u;
+    g.font = `${Math.min(P.w, P.h) * 0.42}px ${FONT}`; g.fillText(s.emoji || '✨', P.x + P.w / 2, P.y + P.h / 2 + bob);
+  }
+  g.restore();
+}
+function drawCTAPanel(P, lt, dur) {
+  const u = P.u, cx = P.x + P.w / 2;
+  const btns = [['👍  LIKE', '#1f2430', '#fff'], ['🔔  SUBSCRIBE', '#ff0033', '#fff'], ['➕  FOLLOW', '#24d2c4', '#04201d']];
+  const bh = Math.min(P.h * 0.2, 96 * u), gap = bh * 0.32, total = bh * 3 + gap * 2, bw = Math.min(P.w * 0.8, 520 * u);
+  let y = P.y + (P.h - total) / 2;
+  const tapAt = 0.45, done = lt / dur > tapAt + 0.05;
+  let tapX = 0, tapY = 0;
+  btns.forEach(([t, bg, fg], k) => {
+    const e = easeBack((lt - 0.15 - k * 0.18) / 0.45); if (e <= 0) { y += bh + gap; return; }
+    const pulse = k === 1 && !done ? 1 + 0.04 * Math.sin(lt * 8) : 1;
+    g.save(); g.translate(cx, y + bh / 2); g.scale(e * pulse, e * pulse);
+    rr(-bw / 2, -bh / 2, bw, bh, bh / 2); g.fillStyle = k === 1 && done ? '#8a8f9c' : bg; g.fill();
+    g.fillStyle = fg; g.font = `800 ${bh * 0.36}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(k === 1 && done ? '✔  SUBSCRIBED' : t, 0, 2 * u); g.restore();
+    if (k === 1) { tapX = cx + bw * 0.25; tapY = y + bh / 2; }
+    y += bh + gap;
+  });
+  drawTap(tapX, tapY, lt, dur, u);
+}
+function drawTap(x, y, lt, dur, u) {
+  const p = lt / dur, a0 = 0.12, a1 = 0.4;
+  if (p < a0) return;
+  const mv = ease((p - a0) / (a1 - a0));
+  const fx = x + (1 - mv) * 260 * u, fy = y + (1 - mv) * 300 * u;
+  if (p > a1) {
+    for (let k = 0; k < 2; k++) {
+      const rp = ((lt - a1 * dur) * 1.1 + k * 0.5) % 1.2;
+      g.beginPath(); g.arc(x, y, (12 + rp * 70) * u, 0, Math.PI * 2);
+      g.strokeStyle = `rgba(255,61,110,${clamp(1 - rp / 1.2, 0, 1) * 0.9})`; g.lineWidth = 6 * u; g.stroke();
+    }
+    g.beginPath(); g.arc(x, y, 12 * u, 0, Math.PI * 2); g.fillStyle = 'rgba(255,61,110,.85)'; g.fill();
+  }
+  const press = p > a1 && p < a1 + 0.08 ? 0.88 : 1;
+  g.save(); g.translate(fx, fy); g.scale(press, press);
+  g.font = `${90 * u}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'top'; g.shadowColor = '#0007'; g.shadowBlur = 12 * u;
+  g.fillText('👆', 6 * u, -4 * u); g.restore();
+}
+
+function drawFrame(t) {
+  curT = t; const L = layout(); drawBg(t);
+  if (!project || !project.scenes.length) return;
+  const S = project.scenes; let i = S.findIndex(s => t < s.start + s.dur); if (i < 0) i = S.length - 1;
+  const s = S[i], lt = t - s.start;
+  // progress segmen
+  const gap = 6 * L.u, sw = (L.prog.w - gap * (S.length - 1)) / S.length;
+  S.forEach((q, k) => {
+    const x = L.prog.x + k * (sw + gap); rr(x, L.prog.y, sw, 7 * L.u, 4 * L.u); g.fillStyle = T.tx + '40'; g.fill();
+    const f = k < i ? 1 : k > i ? 0 : clamp(lt / q.dur, 0, 1); if (f > 0) { rr(x, L.prog.y, sw * f, 7 * L.u, 4 * L.u); g.fillStyle = T.tx; g.fill(); }
+  });
+  const inP = ease(lt / 0.45), slide = (1 - inP) * W * 0.12;
+  g.save(); g.globalAlpha = clamp(lt / 0.3, 0, 1);
+  // label chip
+  if (s.label) {
+    const cs = easeBack(lt / 0.5);
+    g.font = `800 ${26 * L.u}px ${FONT}`; const tw = g.measureText(s.label).width + 34 * L.u, ch = 46 * L.u;
+    const cx = L.land ? L.textX : (W - tw) / 2, cy = L.land ? L.chipY : L.chipY;
+    g.save(); g.translate(cx + tw / 2, cy + ch / 2); g.scale(cs, cs); rr(-tw / 2, -ch / 2, tw, ch, ch / 2);
+    g.fillStyle = s.type === 'cta' ? T.acc2 : T.acc; g.fill(); g.fillStyle = T.chipTx; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(s.label, 0, 2 * L.u); g.restore();
+  }
+  // teks utama
+  const ft = fitText(s.text || '', L.textW, L.textMaxLines, L.textSize, 30 * L.u);
+  g.font = `800 ${ft.size}px ${FONT}`; g.textBaseline = 'top'; g.textAlign = L.land ? 'left' : 'center';
+  const lh = ft.size * 1.15, tx0 = L.land ? L.textX : W / 2;
+  let ty = L.land ? L.textY : L.textY + Math.max(0, (L.textMaxLines - ft.lines.length)) * lh * 0.5;
+  ft.lines.forEach((ln, k) => {
+    const d = ease((lt - 0.08 * k) / 0.4); g.save(); g.globalAlpha *= d; g.translate(slide * 0.5 + (1 - d) * 30 * L.u, 0);
+    g.lineWidth = 8 * L.u; g.strokeStyle = '#00000055'; g.lineJoin = 'round'; g.strokeText(ln, tx0, ty + k * lh);
+    g.fillStyle = T.tx; g.fillText(ln, tx0, ty + k * lh); g.restore();
+  });
+  // panel praktek
+  g.save(); g.translate(slide, 0); const sc = 0.92 + 0.08 * inP;
+  g.translate(L.panel.x + L.panel.w / 2, L.panel.y + L.panel.h / 2); g.scale(sc, sc); g.translate(-(L.panel.x + L.panel.w / 2), -(L.panel.y + L.panel.h / 2));
+  drawPanelContent(s, { ...L.panel, u: L.u }, lt);
+  // badge nomor
+  if (s.type === 'langkah') {
+    const n = S.slice(0, i + 1).filter(q => q.type === 'langkah').length, tot = S.filter(q => q.type === 'langkah').length;
+    const bt = `${n}/${tot}`; g.font = `800 ${24 * L.u}px ${FONT}`; const bw = g.measureText(bt).width + 26 * L.u;
+    rr(L.panel.x + 14 * L.u, L.panel.y + 14 * L.u, bw, 40 * L.u, 12 * L.u); g.fillStyle = '#000000aa'; g.fill();
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(bt, L.panel.x + 14 * L.u + bw / 2, L.panel.y + 35 * L.u);
+  }
+  g.restore();
+  g.restore();
+  // subtitle karaoke
+  const st = lt - 0.12 - (s.vOff || 0);
+  if (s.words && s.words.length && st >= -0.05) {
+    let wi = s.words.findIndex(w => st < w.t1); if (wi < 0) wi = s.words.length - 1;
+    const chunk = s.chunks.find(c => c.includes(wi)) || s.chunks[s.chunks.length - 1];
+    const sz = (L.land ? 40 : 46) * L.u; g.font = `800 ${sz}px ${FONT}`;
+    const parts = chunk.map(k => s.words[k].w.toUpperCase()); const space = g.measureText(' ').width * 1.9;
+    let lines = [[]], lw = [0]; const maxW = L.subW;
+    parts.forEach((p, k) => { const w = g.measureText(p).width; const cur = lines.length - 1; if (lw[cur] + w > maxW && lines[cur].length) { lines.push([]); lw.push(0); } const c2 = lines.length - 1; lines[c2].push({ p, k: chunk[k], w }); lw[c2] += w + space; });
+    g.textBaseline = 'middle'; g.textAlign = 'left'; g.lineJoin = 'round';
+    lines.forEach((ln, li) => {
+      const total = lw[li] - space; let x = L.subX - total / 2; const y = L.subY + (li - (lines.length - 1) / 2) * sz * 1.25;
+      ln.forEach(o => {
+        const on = o.k === wi, past = o.k < wi;
+        g.save(); const scl = on ? 1.1 : 1; g.translate(x + o.w / 2, y); g.scale(scl, scl);
+        g.lineWidth = 10 * L.u; g.strokeStyle = '#000'; g.strokeText(o.p, -o.w / 2, 0);
+        g.fillStyle = on ? (T === THEMES.terang ? '#ffd803' : T.sub) : '#ffffff'; g.fillText(o.p, -o.w / 2, 0); g.restore();
+        x += o.w + space;
+      });
+    });
+  }
+  // watermark
+  const hd = $('#handle').value.trim();
+  if (hd) { g.font = `700 ${24 * L.u}px ${FONT}`; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillStyle = T.tx + 'bb'; g.fillText(hd, W - 24 * L.u, H - 22 * L.u); }
+  syncVideos(i, lt);
+}
+let lastVidScene = -1;
+function syncVideos(i, lt) {
+  if (!project) return;
+  project.scenes.forEach((s, k) => {
+    const m = s.media; if (!m || m.kind !== 'video') return;
+    if (k === i && playing) { if (lastVidScene !== i) { try { m.el.currentTime = 0; } catch (e) {} m.el.play().catch(() => {}); } }
+    else if (!m.el.paused) m.el.pause();
+  });
+  lastVidScene = playing ? i : -1;
+}
+
+/* ============ pemutar & ekspor ============ */
+let playing = false, raf = 0, srcNodes = [], t0 = 0, recDest = null;
+function stopPlay() {
+  playing = false; cancelAnimationFrame(raf); srcNodes.forEach(n => { try { n.stop(); } catch (e) {} }); srcNodes = [];
+  if (project) project.scenes.forEach(s => s.media && s.media.kind === 'video' && s.media.el.pause());
+  lastVidScene = -1;
+}
+function startPlay(onEnd, toRecorder) {
+  stopPlay(); const ctx = getCtx(); ctx.resume();
+  const master = ctx.createDynamicsCompressor(); master.connect(ctx.destination);
+  if (toRecorder) master.connect(toRecorder);
+  srcNodes.push({ stop: () => { try { master.disconnect(); } catch (e) {} } });
+  t0 = ctx.currentTime + 0.15;
+  for (const s of project.scenes) {
+    if (!s.audio) continue;
+    const n = ctx.createBufferSource(); n.buffer = s.audio; n.connect(master); n.start(t0 + s.start + 0.12); srcNodes.push(n);
+  }
+  if (project.music) {
+    const n = ctx.createBufferSource(); n.buffer = project.music; const gn = ctx.createGain(); gn.gain.value = +$('#music').value * 3;
+    gn.gain.setValueAtTime(gn.gain.value, t0 + project.total - 1.2); gn.gain.linearRampToValueAtTime(0, t0 + project.total);
+    n.connect(gn).connect(master); n.start(t0); srcNodes.push(n);
+  }
+  playing = true;
+  const loop = () => {
+    if (!playing) return;
+    const t = Math.max(0, ctx.currentTime - t0);
+    drawFrame(Math.min(t, project.total - 0.001)); setProg(t / project.total);
+    if (t >= project.total + 0.25) { stopPlay(); onEnd && onEnd(); return; }
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+function pickMime() {
+  const c = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+  for (const m of c) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+let outBlob = null, outExt = 'mp4';
+async function exportVideo() {
+  if (!window.MediaRecorder || !cv.captureStream) { setStatus('Perangkat/browser ini belum mendukung perekaman video. Coba buka di Chrome.'); return; }
+  const ctx = getCtx(); await ctx.resume();
+  const dest = ctx.createMediaStreamDestination();
+  const stream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  const mime = pickMime(); outExt = mime.includes('mp4') ? 'mp4' : 'webm';
+  const rec = new MediaRecorder(stream, { mimeType: mime || undefined, videoBitsPerSecond: 6_000_000, audioBitsPerSecond: 128_000 });
+  const chunks = []; rec.ondataavailable = e => e.data && e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  lockUI(true); $('#out').style.display = 'none';
+  setStatus('🔴 Merekam video… biarkan layar tetap terbuka (' + Math.ceil(project.total) + ' detik).');
+  rec.start(500);
+  await new Promise(r => startPlay(r, dest));
+  await sleep(200); rec.stop(); await done;
+  outBlob = new Blob(chunks, { type: mime || 'video/webm' });
+  $('#outVideo').src = URL.createObjectURL(outBlob); $('#out').style.display = 'block';
+  $('#saveNote').textContent = `Format ${outExt.toUpperCase()}, ${(outBlob.size / 1048576).toFixed(1)} MB, ${W}×${H}.` + (outExt === 'webm' ? ' Jika TikTok/Instagram menolak WebM, buka dulu di CapCut lalu ekspor ulang ke MP4.' : '');
+  $('#save').style.display = downloads ? '' : 'none';
+  if (!downloads) $('#saveNote').textContent += ' Simpan: tekan lama video di atas, atau buka halaman ini di browser.';
+  setStatus('✅ Video siap!'); lockUI(false);
+}
+$('#save').addEventListener('click', async () => {
+  if (!outBlob || !downloads) return;
+  const name = (project.title || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'video';
+  try { await downloads.save({ filename: `${name}-${sel.ratio.replace(':', 'x')}.${outExt}`, data: outBlob }); $('#saveNote').textContent = '✅ Tersimpan.'; }
+  catch (e) { $('#saveNote').textContent = e && e.code === 'declined' ? 'Penyimpanan dibatalkan.' : 'Gagal menyimpan (' + (e && e.code || 'error') + ').'; }
+});
+
+function lockUI(b) { ['#go', '#play', '#export', '#apply'].forEach(s => $(s).disabled = b); $('#stop').disabled = !b && !playing; if (b) $('#stop').disabled = false; }
+$('#play').addEventListener('click', () => { if (!project) return; $('#stop').disabled = false; startPlay(() => { setStatus('Selesai diputar. Tekan "Buat file video" untuk menyimpan.'); }); setStatus('▶ Memutar preview…'); });
+$('#stop').addEventListener('click', () => { stopPlay(); setStatus('Dihentikan.'); });
+$('#export').addEventListener('click', exportVideo);
+
+/* ============ editor adegan ============ */
+function renderEditor() {
+  const box = $('#scenes'); box.innerHTML = '';
+  project.scenes.forEach((s, i) => {
+    const d = document.createElement('div'); d.className = 'scene';
+    d.innerHTML = `<h4><span>${i + 1}. ${esc(s.label || '')} <small>${s.dur ? s.dur.toFixed(1) + ' dtk' : ''}</small></span></h4>
+      <div class="row" style="align-items:flex-start;gap:8px">
+        <div style="flex:none" class="th"></div>
+        <div><input type="text" data-k="text" value="${esc(s.text || '')}" placeholder="Teks layar"></div>
+      </div>
+      <textarea data-k="narration" rows="3" style="margin-top:6px" placeholder="Narasi">${esc(s.narration || '')}</textarea>
+      <div class="acts">
+        <label class="btn">📷 Visual praktek<input type="file" accept="image/*,video/*" hidden data-f="media"></label>
+        <label class="btn">🎙 Suara sendiri<input type="file" accept="audio/*" hidden data-f="audio"></label>
+        ${s.media || s.customAudio ? '<button class="btn" data-a="reset">↺ Pakai AI</button>' : ''}
+        <button class="btn" data-a="up">↑</button><button class="btn" data-a="del">🗑</button>
+      </div>
+      ${s.customAudio ? '<div class="small">🎙 memakai suara rekaman Anda</div>' : ''}`;
+    const th = d.querySelector('.th');
+    const thumbSrc = s.media ? (s.media.kind === 'image' ? s.media.el.src : null) : (s.img ? s.img.src : null);
+    if (thumbSrc) { const im = document.createElement('img'); im.className = 'thumb'; im.src = thumbSrc; th.appendChild(im); }
+    else { th.className = 'thumb'; th.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:24px;background:#222'; th.textContent = s.media ? '🎥' : (s.emoji || '✨'); }
+    d.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { s[el.dataset.k] = el.value; markDirty(); }));
+    d.querySelector('[data-f=media]').addEventListener('change', async e => {
+      const f = e.target.files[0]; if (!f) return; const url = URL.createObjectURL(f);
+      if (f.type.startsWith('video')) { const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.loop = true; v.preload = 'auto'; v.setAttribute('playsinline', ''); v.load(); s.media = { kind: 'video', el: v }; }
+      else { const im = await loadImg(url); if (im) s.media = { kind: 'image', el: im }; }
+      renderEditor(); drawFrame(s.start + 0.8);
+    });
+    d.querySelector('[data-f=audio]').addEventListener('change', async e => {
+      const f = e.target.files[0]; if (!f) return;
+      try { s.customAudio = await getCtx().decodeAudioData(await f.arrayBuffer()); markDirty(); renderEditor(); }
+      catch (er) { setStatus('File audio tidak bisa dibaca.'); }
+    });
+    d.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a;
+      if (a === 'del' && project.scenes.length > 1) project.scenes.splice(i, 1);
+      if (a === 'up' && i > 0) { const [x] = project.scenes.splice(i, 1); project.scenes.splice(i - 1, 0, x); }
+      if (a === 'reset') { s.media = null; s.customAudio = null; }
+      markDirty(); renderEditor();
+    }));
+    box.appendChild(d);
+  });
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function markDirty() { $('#apply').textContent = '🔄 Terapkan perubahan *'; }
+$('#addScene').addEventListener('click', () => {
+  const k = project.scenes.length - 1;
+  project.scenes.splice(Math.max(1, k), 0, { type: 'langkah', label: 'TAMBAHAN', text: 'Teks baru', narration: 'Tulis narasi di sini.', emoji: '💡', tap: null });
+  markDirty(); renderEditor();
+});
+$('#apply').addEventListener('click', async () => {
+  stopPlay(); lockUI(true);
+  try { await buildAudio(setStatus); } catch (e) { console.error(e); }
+  $('#apply').textContent = '🔄 Terapkan perubahan';
+  renderEditor(); drawFrame(0.9); setProg(0); lockUI(false); $('#stop').disabled = true;
+  $('#mScript').value = scriptText();
+  setStatus(`Diperbarui • ${project.scenes.length} adegan • ${project.total.toFixed(1)} dtk`);
+});
+
+/* ============ generate ============ */
+$('#go').addEventListener('click', async () => {
+  const title = $('#title').value.trim();
+  if (!title) { $('#title').focus(); setStatus('Tulis judul dulu ya.'); return; }
+  if (sel.mode === 'manual' && !$('#manualScript').value.trim()) { setStatus('Tulis naskahnya dulu, atau pilih "Dari judul".'); return; }
+  stopPlay(); getCtx().resume(); applyRatio(); applyTheme(); lockUI(true); $('#out').style.display = 'none';
+  $('#aiWarn').classList.add('hide');
+  initTTS().catch(() => {});
+  try { await document.fonts.load(`800 40px Poppins`); await document.fonts.load(`700 40px Poppins`); } catch (e) {}
+  let plan;
+  try {
+    if (sel.mode === 'manual') plan = manualPlan(title, $('#manualScript').value);
+    else if (sampleFn) {
+      setStatus('✍️ AI menulis naskah & ilustrasi praktek…'); setProg(0.05);
+      let n = sceneCount(sel.dur);
+      const r = await sampleFn(buildPrompt(title, sel.cat, sel.dur), {
+        modelTier: 'default', cache: false,
+        onText: ({ text }) => { const k = (text.match(/"narration"/g) || []).length; setStatus(`✍️ AI menulis adegan ${Math.min(k + 1, n)}/${n}…`); setProg(0.05 + 0.6 * k / n); }
+      });
+      plan = parseJSON(r.text);
+      if (!plan.scenes || !plan.scenes.length) throw new Error('Naskah kosong');
+    } else {
+      plan = templatePlan(title, sel.cat, sel.dur);
+      $('#aiWarn').textContent = 'AI penulis naskah tidak tersedia di tampilan ini, jadi naskah dibuat dari template. Edit narasi tiap adegan di bawah, lalu tekan "Terapkan perubahan". (Buka aplikasi ini di claude.ai agar AI aktif.)';
+      $('#aiWarn').classList.remove('hide');
+    }
+  } catch (e) {
+    console.error(e);
+    plan = templatePlan(title, sel.cat, sel.dur);
+    $('#aiWarn').textContent = 'AI gagal membuat naskah (' + (e && (e.code || e.message) || 'error') + '). Naskah template dipakai — silakan edit lalu "Terapkan perubahan", atau coba Generate lagi.';
+    $('#aiWarn').classList.remove('hide');
+  }
+  plan.scenes = (plan.scenes || []).filter(s => s.type !== 'cta' || !/follow|subscribe|ikuti/i.test(s.narration || ''));
+  if ($('#ctaOn').checked) plan.scenes.push(ctaScene());
+  fillMeta(plan, title);
+  if ($('#ctaOn').checked) { const c = ($('#ctaText').value || '').trim(); if (c && !plan.deskripsi.includes(c)) plan.deskripsi += '\n\n' + c; }
+  project = { meta: plan, title, target: sel.dur, mood: plan.mood || 'upbeat', caption: plan.caption || title, hashtags: plan.hashtags || [], scenes: plan.scenes.map(s => ({ ...s })) };
+  setStatus('🎨 Menyiapkan ilustrasi…'); setProg(0.7);
+  await Promise.all(project.scenes.map(async s => { s.img = s.svg ? await svgToImg(s.svg) : null; }));
+  try { await buildAudio(t => { setStatus(t); setProg(0.85); }); } catch (e) { console.error(e); }
+  if (project.ttsFail) { $('#aiWarn').textContent = ($('#aiWarn').classList.contains('hide') ? '' : $('#aiWarn').textContent + ' ') + 'Mesin suara gagal dimuat di perangkat ini — video dibuat tanpa narasi suara. Anda bisa pakai "Suara sendiri" per adegan.'; $('#aiWarn').classList.remove('hide'); }
+  setProg(1);
+  showMeta(project.meta);
+  $('#fullAudioInfo').textContent = 'Belum ada file suara.';
+  $('#editor').style.display = 'block'; renderEditor();
+  lockUI(false); $('#stop').disabled = true;
+  drawFrame(0.9); setProg(0);
+  setStatus(`✅ ${project.scenes.length} adegan • ${project.total.toFixed(1)} dtk. Tekan ▶ Putar untuk preview, lalu 💾 Buat file video.`);
+  if ($('#voice').value === 'file') setStatus('✅ Naskah siap. Sekarang tekan "📋 Salin naskah", buat rekaman suaranya, lalu "📁 Unggah suara".');
+});
+function showMeta(m) {
+  $('#mTitle').value = m.judul_video || ''; $('#mDesc').value = m.deskripsi || ''; $('#mTags').value = (m.hashtags || []).join(' ');
+  $('#mYt').value = m.tags || ''; $('#mPin').value = m.komentar_pin || ''; $('#mScript').value = scriptText();
+  $('#capBox').style.display = 'block';
+}
+async function copyText(txt, btn) {
+  const old = btn.dataset.lbl || (btn.dataset.lbl = btn.textContent);
+  let ok = false;
+  try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
+  }
+  btn.textContent = ok ? '✅ Tersalin' : '⚠️ Tekan lama teks untuk menyalin'; setTimeout(() => btn.textContent = old, 1800);
+}
+document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => copyText($(b.dataset.copy).value, b)));
+$('#copyAll').addEventListener('click', e => copyText(`${$('#mTitle').value}\n\n${$('#mDesc').value}\n\n${$('#mTags').value}`, e.currentTarget));
+
+try { const v = localStorage.getItem('vg_cta'); if (v) $('#ctaText').value = v; if (localStorage.getItem('vg_ctaOn') === '0') $('#ctaOn').checked = false; } catch (e) {}
+$('#ctaText').addEventListener('change', () => { try { localStorage.setItem('vg_cta', $('#ctaText').value); } catch (e) {} });
+$('#ctaOn').addEventListener('change', () => { try { localStorage.setItem('vg_ctaOn', $('#ctaOn').checked ? '1' : '0'); } catch (e) {} });
+function toggleVoiceBox() { $('#fileVoiceBox').classList.toggle('hide', $('#voice').value !== 'file'); $('#speed').disabled = $('#voice').value === 'file' || $('#voice').value === 'none'; }
+$('#voice').addEventListener('change', toggleVoiceBox); toggleVoiceBox();
+function scriptText() {
+  if (!project) return '';
+  return project.scenes.map((s, i) => cleanSpeech(s.narration)).filter(Boolean).join('\n\n');
+}
+$('#copyScript').addEventListener('click', e => {
+  if (!project) { $('#fullAudioInfo').textContent = 'Tekan Generate dulu agar naskah dibuat.'; return; }
+  copyText(scriptText(), e.currentTarget);
+});
+async function onFullAudio(e) {
+  const f = e.target.files[0]; if (!f) return; e.target.value = '';
+  if (!project) { $('#fullAudioInfo').textContent = 'Tekan Generate dulu, lalu unggah suaranya.'; return; }
+  $('#fullAudioInfo').textContent = 'Membaca file suara…';
+  try {
+    project.fullAudio = await getCtx().decodeAudioData(await f.arrayBuffer());
+    $('#fullAudioInfo').textContent = `✅ ${f.name} (${project.fullAudio.duration.toFixed(1)} dtk) dipakai.`;
+    stopPlay(); lockUI(true); await buildAudio(setStatus); renderEditor(); drawFrame(0.9); setProg(0); lockUI(false); $('#stop').disabled = true;
+    const over = project.total > project.target + 1 ? ` (lebih panjang dari ${project.target} dtk karena mengikuti panjang suara)` : '';
+    setStatus(`✅ Suara manusia terpasang • ${project.scenes.length} adegan • ${project.total.toFixed(1)} dtk${over}. Tekan ▶ Putar untuk cek.`);
+  } catch (er) { console.error(er); $('#fullAudioInfo').textContent = '⚠️ File tidak bisa dibaca. Coba format MP3, M4A, WAV atau MP4.'; lockUI(false); }
+}
+$('#fullAudioFile').addEventListener('change', onFullAudio); $('#fullAudioRec').addEventListener('change', onFullAudio);
+window.__dbg = () => ({ project, ttsOk: !!ttsW, drawFrame, W, H, outBlob });
+applyRatio(); document.fonts.ready.then(drawIdle); drawIdle();
+</script>
+</body>
+</html>
