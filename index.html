@@ -167,6 +167,13 @@ input[type=range]{width:100%}
         <label class="t">Nama akun (watermark, opsional)</label>
         <input type="text" id="handle" placeholder="@namaakun" maxlength="40">
 
+        <label class="t">API key Gemini (AI penulis naskah)</label>
+        <div class="row">
+          <input type="password" id="geminiKey" placeholder="Tempel API key Gemini di sini" autocomplete="off" spellcheck="false">
+          <button class="btn" id="geminiShow" type="button" style="flex:none">👁</button>
+        </div>
+        <div class="note" id="geminiInfo">Buat key gratis di <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--acc2)">aistudio.google.com/apikey</a>. Key hanya disimpan di browser ini. Kosongkan untuk memakai naskah template.</div>
+
         <button class="big" id="go">⚡ Generate Video</button>
         <div id="aiWarn" class="warn hide"></div>
       </div>
@@ -836,6 +843,59 @@ $('#apply').addEventListener('click', async () => {
   setStatus(`Diperbarui • ${project.scenes.length} adegan • ${project.total.toFixed(1)} dtk`);
 });
 
+/* ============ Gemini (AI penulis naskah dengan API key sendiri) ============ */
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta';
+const GEMINI_PREF = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
+let geminiModel = null;
+function geminiKey() { return ($('#geminiKey').value || '').trim(); }
+async function geminiCall(path, key, body) {
+  const res = await fetch(`${GEMINI_API}/${path}`, {
+    method: body ? 'POST' : 'GET',
+    headers: Object.assign({ 'x-goog-api-key': key }, body ? { 'Content-Type': 'application/json' } : {}),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = null; try { data = await res.json(); } catch (e) {}
+  if (!res.ok) {
+    const msg = (data && data.error && data.error.message) || ('HTTP ' + res.status);
+    const err = new Error(
+      res.status === 400 && /api key/i.test(msg) ? 'API key Gemini tidak valid' :
+      res.status === 403 ? 'API key Gemini ditolak (cek izin key)' :
+      res.status === 429 ? 'kuota gratis Gemini habis, coba lagi nanti' : 'Gemini: ' + msg);
+    err.status = res.status; throw err;
+  }
+  return data;
+}
+async function pickGeminiModel(key) {
+  if (geminiModel) return geminiModel;
+  try {
+    const d = await geminiCall('models?pageSize=200', key);
+    const names = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+    const pref = GEMINI_PREF.find(p => names.includes(p));
+    const ver = s => parseFloat((s.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
+    const flash = names.filter(n => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => ver(b) - ver(a))[0];
+    geminiModel = pref || flash || names.find(n => /flash/.test(n) && !/image|tts|live|audio/.test(n)) || GEMINI_PREF[0];
+  } catch (e) {
+    if (e.status === 400 || e.status === 403) throw e;
+    geminiModel = GEMINI_PREF[0];
+  }
+  return geminiModel;
+}
+async function geminiGenerate(prompt) {
+  const key = geminiKey();
+  const model = await pickGeminiModel(key);
+  const d = await geminiCall(`models/${model}:generateContent`, key, {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.9, responseMimeType: 'application/json', maxOutputTokens: 16384 }
+  });
+  const c = d.candidates && d.candidates[0];
+  const txt = c && c.content && (c.content.parts || []).map(p => p.text || '').join('');
+  if (!txt) throw new Error('Gemini tidak mengirim naskah' + (c && c.finishReason ? ' (' + c.finishReason + ')' : ''));
+  return txt;
+}
+try { const k = localStorage.getItem('vg_geminiKey'); if (k) $('#geminiKey').value = k; } catch (e) {}
+$('#geminiKey').addEventListener('change', () => { geminiModel = null; try { const k = geminiKey(); if (k) localStorage.setItem('vg_geminiKey', k); else localStorage.removeItem('vg_geminiKey'); } catch (e) {} });
+$('#geminiShow').addEventListener('click', () => { const i = $('#geminiKey'); i.type = i.type === 'password' ? 'text' : 'password'; });
+
 /* ============ generate ============ */
 $('#go').addEventListener('click', async () => {
   const title = $('#title').value.trim();
@@ -857,9 +917,13 @@ $('#go').addEventListener('click', async () => {
       });
       plan = parseJSON(r.text);
       if (!plan.scenes || !plan.scenes.length) throw new Error('Naskah kosong');
+    } else if (geminiKey()) {
+      setStatus('✍️ AI Gemini menulis naskah & ilustrasi praktek…'); setProg(0.08);
+      plan = parseJSON(await geminiGenerate(buildPrompt(title, sel.cat, sel.dur)));
+      if (!plan.scenes || !plan.scenes.length) throw new Error('Naskah kosong');
     } else {
       plan = templatePlan(title, sel.cat, sel.dur);
-      $('#aiWarn').textContent = 'AI penulis naskah tidak tersedia di tampilan ini, jadi naskah dibuat dari template. Edit narasi tiap adegan di bawah, lalu tekan "Terapkan perubahan". (Buka aplikasi ini di claude.ai agar AI aktif.)';
+      $('#aiWarn').textContent = 'AI penulis naskah belum aktif, jadi naskah dibuat dari template. Isi "API key Gemini" di atas agar AI menulis naskah lengkap, atau edit narasi tiap adegan di bawah lalu tekan "Terapkan perubahan".';
       $('#aiWarn').classList.remove('hide');
     }
   } catch (e) {
