@@ -865,32 +865,50 @@ async function geminiCall(path, key, body) {
   }
   return data;
 }
-async function pickGeminiModel(key) {
-  if (geminiModel) return geminiModel;
+// Urutan model yang dicoba: model flash terbaru dulu, lalu cadangan.
+async function geminiCandidates(key) {
+  const ver = s => { const m = s.match(/gemini-(\d+)(?:\.(\d+))?/); return m ? (+m[1]) * 100 + (+(m[2] || 0)) : 0; };
+  let names = [];
   try {
-    const d = await geminiCall('models?pageSize=200', key);
-    const names = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
-    const pref = GEMINI_PREF.find(p => names.includes(p));
-    const ver = s => parseFloat((s.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
-    const flash = names.filter(n => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => ver(b) - ver(a))[0];
-    geminiModel = pref || flash || names.find(n => /flash/.test(n) && !/image|tts|live|audio/.test(n)) || GEMINI_PREF[0];
-  } catch (e) {
-    if (e.status === 400 || e.status === 403) throw e;
-    geminiModel = GEMINI_PREF[0];
-  }
-  return geminiModel;
+    const d = await geminiCall('models?pageSize=1000', key);
+    names = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+  } catch (e) { if (e.status === 400 || e.status === 403) throw e; }
+  const bad = /image|tts|live|audio|embed|thinking|exp|preview/;
+  const stable = names.filter(n => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => ver(b) - ver(a));
+  const latest = names.filter(n => /flash-latest$/.test(n));
+  const other = names.filter(n => /flash/.test(n) && !/lite/.test(n) && !bad.test(n)).sort((a, b) => ver(b) - ver(a));
+  const lite = names.filter(n => /flash-lite/.test(n) && !bad.test(n)).sort((a, b) => ver(b) - ver(a));
+  const list = [geminiModel, ...stable, ...latest, ...other, ...lite, ...GEMINI_PREF].filter(Boolean);
+  return [...new Set(list)];
 }
+const modelGone = e => e && (e.status === 404 || /no longer available|not found|not supported|deprecated|update your code/i.test(e.message || ''));
 async function geminiGenerate(prompt) {
   const key = geminiKey();
-  const model = await pickGeminiModel(key);
-  const d = await geminiCall(`models/${model}:generateContent`, key, {
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.9, responseMimeType: 'application/json', maxOutputTokens: 16384 }
-  });
-  const c = d.candidates && d.candidates[0];
-  const txt = c && c.content && (c.content.parts || []).map(p => p.text || '').join('');
-  if (!txt) throw new Error('Gemini tidak mengirim naskah' + (c && c.finishReason ? ' (' + c.finishReason + ')' : ''));
-  return txt;
+  const list = await geminiCandidates(key);
+  let lastErr = null;
+  for (let i = 0; i < list.length && i < 8; i++) {
+    const model = list[i];
+    try {
+      const d = await geminiCall(`models/${model}:generateContent`, key, {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.9, responseMimeType: 'application/json', maxOutputTokens: 16384 }
+      });
+      const c = d.candidates && d.candidates[0];
+      const txt = c && c.content && (c.content.parts || []).map(p => p.text || '').join('');
+      if (!txt) throw new Error('Gemini tidak mengirim naskah' + (c && c.finishReason ? ' (' + c.finishReason + ')' : ''));
+      geminiModel = model;
+      return txt;
+    } catch (e) {
+      lastErr = e;
+      if (!modelGone(e)) throw e;
+      if (geminiModel === model) geminiModel = null;
+      // Jika Gemini menyarankan model pengganti, coba model itu berikutnya.
+      const sug = (e.message || '').match(/models\/(gemini-[\w.\-]+)/g);
+      if (sug) for (const s of sug.map(x => x.replace(/^models\//, '').replace(/[.\-]+$/, ''))) if (s !== model && !list.slice(0, i + 1).includes(s)) { list.splice(i + 1, 0, s); }
+      setStatus(`✍️ Model ${model} tidak tersedia, mencoba model lain…`);
+    }
+  }
+  throw lastErr || new Error('Tidak ada model Gemini yang bisa dipakai');
 }
 try { const k = localStorage.getItem('vg_geminiKey'); if (k) $('#geminiKey').value = k; } catch (e) {}
 $('#geminiKey').addEventListener('change', () => { geminiModel = null; try { const k = geminiKey(); if (k) localStorage.setItem('vg_geminiKey', k); else localStorage.removeItem('vg_geminiKey'); } catch (e) {} });
