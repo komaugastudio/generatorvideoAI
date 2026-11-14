@@ -217,7 +217,8 @@ input[type=range]{width:100%}
         <div class="field"><div class="fh"><span>Tag / kata kunci YouTube</span><button class="btn" data-copy="#mYt">📋 Salin</button></div><textarea id="mYt" rows="3"></textarea></div>
         <div class="field"><div class="fh"><span>Komentar untuk di-pin</span><button class="btn" data-copy="#mPin">📋 Salin</button></div><textarea id="mPin" rows="2"></textarea></div>
         <div class="field"><div class="fh"><span>Naskah narasi (untuk rekam / suara AI)</span><button class="btn" data-copy="#mScript">📋 Salin</button></div><textarea id="mScript" rows="6"></textarea></div>
-        <div class="note">Semua kolom bisa diedit sebelum disalin.</div>
+        <div class="field"><div class="fh"><span>🎬 Prompt video Flow (semua adegan)</span><button class="btn" data-copy="#mPrompts">📋 Salin</button></div><textarea id="mPrompts" rows="8"></textarea></div>
+        <div class="note">Semua kolom bisa diedit sebelum disalin. Buat klip di Google Flow dengan prompt tiap adegan, lalu unggah lewat tombol "🎬 Upload klip Flow / foto" di bagian Adegan.</div>
       </div>
     </div>
   </div>
@@ -407,9 +408,10 @@ Aturan:
 - "svg": ilustrasi flat sederhana yang MEMPERAGAKAN praktek adegan itu (mis. tangan memegang alat, layar HP dengan tombol yang harus ditekan, bahan di atas meja, sebelum-sesudah). Format: <svg viewBox='0 0 400 400'>...</svg>, pakai KUTIP TUNGGAL untuk atribut, bentuk tebal dan warna cerah solid, latar terang, maksimal 2 label teks pendek, tanpa <image>, tanpa script, maksimal 1800 karakter.
 - "tap": titik (x,y dalam persen 0-100 dari ilustrasi) tempat aksi/klik terjadi di ilustrasi untuk adegan praktek; null jika tidak ada aksi.
 - "emoji": satu emoji yang mewakili adegan.
+- "video_prompt": prompt video untuk Google Flow / Veo dalam BAHASA INGGRIS, satu paragraf 40-80 kata, yang MEMPERAGAKAN isi narasi adegan itu secara visual: subjek (orang Indonesia bila ada orang), aksi yang jelas, latar, gaya photorealistic cinematic, pencahayaan, gerak kamera. Selalu sebut "vertical 9:16, 8 seconds". Tanpa teks, tulisan, subtitle, atau logo di video. Jaga tokoh, pakaian dan gaya visual konsisten di semua adegan.
 
 Balas HANYA JSON valid tanpa teks lain, format:
-{"kategori":"...","mood":"upbeat|calm|epic","judul_video":"judul unggahan yang menarik dan SEO, maks 70 karakter, boleh 1 emoji","deskripsi":"keterangan unggahan 3-5 kalimat: ringkasan isi + daftar langkah singkat bila tutorial","hashtags":["8-12 hashtag relevan campuran populer dan spesifik, diawali #"],"tags":"10-15 kata kunci YouTube dipisah koma","komentar_pin":"1 kalimat pertanyaan untuk komentar yang di-pin agar penonton membalas","scenes":[{"type":"hook|langkah|tips|fakta|hasil|cta","label":"...","text":"...","narration":"...","emoji":"...","tap":{"x":50,"y":50},"svg":"<svg viewBox='0 0 400 400'>...</svg>"}]}`;
+{"kategori":"...","mood":"upbeat|calm|epic","judul_video":"judul unggahan yang menarik dan SEO, maks 70 karakter, boleh 1 emoji","deskripsi":"keterangan unggahan 3-5 kalimat: ringkasan isi + daftar langkah singkat bila tutorial","hashtags":["8-12 hashtag relevan campuran populer dan spesifik, diawali #"],"tags":"10-15 kata kunci YouTube dipisah koma","komentar_pin":"1 kalimat pertanyaan untuk komentar yang di-pin agar penonton membalas","scenes":[{"type":"hook|langkah|tips|fakta|hasil|cta","label":"...","text":"...","narration":"...","emoji":"...","tap":{"x":50,"y":50},"video_prompt":"...","svg":"<svg viewBox='0 0 400 400'>...</svg>"}]}`;
 }
 function parseJSON(txt) {
   const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
@@ -431,6 +433,17 @@ function manualPlan(title, script) {
       text: p.split(/\s+/).slice(0, 6).join(' ') + (p.split(/\s+/).length > 6 ? '…' : ''), narration: p, emoji: em[i % em.length], tap: null })) };
 }
 
+function videoPromptFor(s, title) {
+  return `Vertical 9:16 video, 8 seconds, photorealistic cinematic live-action. Visually show this scene from a short video about "${title}": ${cleanSpeech(s.narration || s.text || '')}. Indonesian people and setting where relevant, clear action, natural lighting, smooth slow camera movement. No on-screen text, no subtitles, no logos.`;
+}
+function ensureVideoPrompts() {
+  if (!project) return;
+  project.scenes.forEach(s => { if (!s.isCTA && !(s.video_prompt || '').trim()) s.video_prompt = videoPromptFor(s, project.title || ''); });
+}
+function promptsText() {
+  if (!project) return '';
+  return project.scenes.map((s, i) => s.isCTA ? null : `ADEGAN ${i + 1} (${s.label || ''}):\n${(s.video_prompt || '').trim()}`).filter(Boolean).join('\n\n');
+}
 function ctaScene() {
   const txt = ($('#ctaText').value || '').trim() || 'Jangan lupa subscribe dan follow untuk tips lainnya!';
   const short = txt.length > 46 ? 'Subscribe & Follow untuk tips lainnya!' : txt;
@@ -630,11 +643,22 @@ function drawTap(x, y, lt, dur, u) {
   g.fillText('👆', 6 * u, -4 * u); g.restore();
 }
 
+function drawFullVideo(el) {
+  if (el.readyState >= 2 && el.videoWidth && el.videoHeight) {
+    const sc = Math.max(W / el.videoWidth, H / el.videoHeight), dw = el.videoWidth * sc, dh = el.videoHeight * sc;
+    g.drawImage(el, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  } else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
+  // gelapkan atas & bawah agar teks dan subtitle tetap terbaca
+  let gr = g.createLinearGradient(0, 0, 0, H * 0.4); gr.addColorStop(0, '#000000b3'); gr.addColorStop(1, '#00000000'); g.fillStyle = gr; g.fillRect(0, 0, W, H * 0.4);
+  gr = g.createLinearGradient(0, H * 0.6, 0, H); gr.addColorStop(0, '#00000000'); gr.addColorStop(1, '#000000c0'); g.fillStyle = gr; g.fillRect(0, H * 0.6, W, H * 0.4);
+}
 function drawFrame(t) {
   curT = t; const L = layout(); drawBg(t);
   if (!project || !project.scenes.length) return;
   const S = project.scenes; let i = S.findIndex(s => t < s.start + s.dur); if (i < 0) i = S.length - 1;
   const s = S[i], lt = t - s.start;
+  const fullVid = !!(s.media && s.media.kind === 'video');
+  const T0 = T; if (fullVid) { drawFullVideo(s.media.el); T = Object.assign({}, T, { tx: '#ffffff' }); }
   // progress segmen
   const gap = 6 * L.u, sw = (L.prog.w - gap * (S.length - 1)) / S.length;
   S.forEach((q, k) => {
@@ -663,6 +687,7 @@ function drawFrame(t) {
     g.fillStyle = T.tx; g.fillText(ln, tx0, ty + k * lh); g.restore();
   });
   // panel praktek
+  if (!fullVid) {
   g.save(); g.translate(slide, 0); const sc = 0.92 + 0.08 * inP;
   g.translate(L.panel.x + L.panel.w / 2, L.panel.y + L.panel.h / 2); g.scale(sc, sc); g.translate(-(L.panel.x + L.panel.w / 2), -(L.panel.y + L.panel.h / 2));
   drawPanelContent(s, { ...L.panel, u: L.u }, lt);
@@ -674,6 +699,7 @@ function drawFrame(t) {
     g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(bt, L.panel.x + 14 * L.u + bw / 2, L.panel.y + 35 * L.u);
   }
   g.restore();
+  }
   g.restore();
   // subtitle karaoke
   const st = lt - 0.12 - (s.vOff || 0);
@@ -699,6 +725,7 @@ function drawFrame(t) {
   // watermark
   const hd = $('#handle').value.trim();
   if (hd) { g.font = `700 ${24 * L.u}px ${FONT}`; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillStyle = T.tx + 'bb'; g.fillText(hd, W - 24 * L.u, H - 22 * L.u); }
+  T = T0;
   syncVideos(i, lt);
 }
 let lastVidScene = -1;
@@ -785,6 +812,7 @@ $('#export').addEventListener('click', exportVideo);
 
 /* ============ editor adegan ============ */
 function renderEditor() {
+  ensureVideoPrompts();
   const box = $('#scenes'); box.innerHTML = '';
   project.scenes.forEach((s, i) => {
     const d = document.createElement('div'); d.className = 'scene';
@@ -794,18 +822,21 @@ function renderEditor() {
         <div><input type="text" data-k="text" value="${esc(s.text || '')}" placeholder="Teks layar"></div>
       </div>
       <textarea data-k="narration" rows="3" style="margin-top:6px" placeholder="Narasi">${esc(s.narration || '')}</textarea>
+      ${s.isCTA ? '' : `<div class="fh" style="margin-top:8px"><span>🎬 Prompt video Flow</span><button class="btn" data-a="copyPrompt">📋 Salin</button></div>
+      <textarea data-k="video_prompt" rows="4" placeholder="Prompt video untuk Google Flow">${esc(s.video_prompt || '')}</textarea>`}
       <div class="acts">
-        <label class="btn">📷 Visual praktek<input type="file" accept="image/*,video/*" hidden data-f="media"></label>
+        <label class="btn pri">🎬 Upload klip Flow / foto<input type="file" accept="video/*,image/*" hidden data-f="media"></label>
         <label class="btn">🎙 Suara sendiri<input type="file" accept="audio/*" hidden data-f="audio"></label>
         ${s.media || s.customAudio ? '<button class="btn" data-a="reset">↺ Pakai AI</button>' : ''}
         <button class="btn" data-a="up">↑</button><button class="btn" data-a="del">🗑</button>
       </div>
-      ${s.customAudio ? '<div class="small">🎙 memakai suara rekaman Anda</div>' : ''}`;
+      ${s.customAudio ? '<div class="small">🎙 memakai suara rekaman Anda</div>' : ''}
+      ${s.media && s.media.kind === 'video' ? '<div class="small">🎬 klip video dipakai layar penuh</div>' : ''}`;
     const th = d.querySelector('.th');
     const thumbSrc = s.media ? (s.media.kind === 'image' ? s.media.el.src : null) : (s.img ? s.img.src : null);
     if (thumbSrc) { const im = document.createElement('img'); im.className = 'thumb'; im.src = thumbSrc; th.appendChild(im); }
     else { th.className = 'thumb'; th.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:24px;background:#222'; th.textContent = s.media ? '🎥' : (s.emoji || '✨'); }
-    d.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { s[el.dataset.k] = el.value; markDirty(); }));
+    d.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { s[el.dataset.k] = el.value; if (el.dataset.k === 'video_prompt') $('#mPrompts').value = promptsText(); else markDirty(); }));
     d.querySelector('[data-f=media]').addEventListener('change', async e => {
       const f = e.target.files[0]; if (!f) return; const url = URL.createObjectURL(f);
       if (f.type.startsWith('video')) { const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.loop = true; v.preload = 'auto'; v.setAttribute('playsinline', ''); v.load(); s.media = { kind: 'video', el: v }; }
@@ -821,11 +852,13 @@ function renderEditor() {
       const a = b.dataset.a;
       if (a === 'del' && project.scenes.length > 1) project.scenes.splice(i, 1);
       if (a === 'up' && i > 0) { const [x] = project.scenes.splice(i, 1); project.scenes.splice(i - 1, 0, x); }
+      if (a === 'copyPrompt') { copyText(s.video_prompt || '', b); return; }
       if (a === 'reset') { s.media = null; s.customAudio = null; }
       markDirty(); renderEditor();
     }));
     box.appendChild(d);
   });
+  if ($('#mPrompts')) $('#mPrompts').value = promptsText();
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function markDirty() { $('#apply').textContent = '🔄 Terapkan perubahan *'; }
@@ -971,6 +1004,7 @@ $('#go').addEventListener('click', async () => {
 function showMeta(m) {
   $('#mTitle').value = m.judul_video || ''; $('#mDesc').value = m.deskripsi || ''; $('#mTags').value = (m.hashtags || []).join(' ');
   $('#mYt').value = m.tags || ''; $('#mPin').value = m.komentar_pin || ''; $('#mScript').value = scriptText();
+  ensureVideoPrompts(); $('#mPrompts').value = promptsText();
   $('#capBox').style.display = 'block';
 }
 async function copyText(txt, btn) {
